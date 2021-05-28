@@ -1,0 +1,143 @@
+openapi: 3.0.3
+info:
+  title: Images Manager
+  description: Simple images manager
+  version: 1.0.0
+servers:
+- url: https://localhost:8080
+tags:
+- name: images
+  description: Manage images
+paths:
+  /images:
+    post:
+      tags:
+      - images
+      summary: Upload an image
+      operationId: uploadImage
+      requestBody:
+        $ref: '#/components/requestBodies/UploadImageBody'
+      responses:
+        200:
+          description: Image uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadImageResponse'
+        400:
+          description: Invalid image
+          content: {}
+    get:
+      tags:
+      - images
+      summary: List images
+      operationId: getImages
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetImagesResponse'
+  /images/{imageId}:
+    parameters:
+    - in: path
+      name: imageId
+      schema:
+        type: string
+      required: true
+      description: Image ID
+    get:
+      tags:
+      - images
+      summary: Get image
+      operationId: getImage
+      responses:
+        200:
+          description: OK
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        404:
+          description: Image does not exist
+    delete:
+      tags:
+      - images
+      summary: Delete image
+      operationId: deleteImage
+      responses:
+        200:
+          description: OK
+        404:
+          description: Image does not exist
+  /images/{imageId}/metadata:
+    parameters:
+    - in: path
+      name: imageId
+      schema:
+        type: string
+      required: true
+      description: Image ID
+    get:
+      tags:
+      - images
+      summary: Get image metadata
+      operationId: getImageMetadata
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetImageMetadataResponse'
+        404:
+          description: Image does not exist
+components:
+  requestBodies:
+    UploadImageBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+            - image
+            properties:
+              image:
+                type: string
+                format: binary
+              name:
+                type: string
+              description:
+                type: string
+  schemas:
+    UploadImageResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Image ID
+    GetImagesResponse:
+      type: array
+      items:
+        properties:
+          id:
+            type: string
+            description: Image ID
+          name:
+            type: string
+            description: Image name
+          description:
+            type: string
+            description: Image description
+    GetImageMetadataResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Image name
+        description:
+          type: string
+          description: Image description
