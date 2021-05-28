@@ -11,7 +11,7 @@ import (
 
 func handlerWithLogging(handler func(w http.ResponseWriter, r *http.Request)) http.Handler {
 	return handlers.LoggingHandler(
-		log.StandardLogger().Writer(),
+		log.StandardLogger().WriterLevel(log.DebugLevel),
 		http.HandlerFunc(handler),
 	)
 }
