@@ -1,8 +1,18 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
 
-type MinioRepository struct{}
+	"github.com/minio/minio-go/v6"
+)
+
+type MinioRepository struct {
+	client *minio.Client
+}
+
+func NewMinioClient(endpoint, accessKey, secretKey string) (*minio.Client, error) {
+	return minio.New(endpoint, accessKey, secretKey, false)
+}
 
 func (r MinioRepository) AddImageAndReturnID(image Image) (string, error) {
 	return "", fmt.Errorf("not implemented yet")
