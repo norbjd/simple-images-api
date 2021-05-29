@@ -1,14 +1,7 @@
 package main
 
-import (
-	"net/http"
-
-	log "github.com/sirupsen/logrus"
-)
-
 func main() {
-	router := InitRouter()
+	repository := MinioRepository{}
 
-	log.Info("Server started")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	App{repository: repository}.run()
 }
