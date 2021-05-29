@@ -7,7 +7,8 @@ import (
 )
 
 type MinioRepository struct {
-	client *minio.Client
+	bucketName string
+	client     *minio.Client
 }
 
 func NewMinioClient(endpoint, accessKey, secretKey string) (*minio.Client, error) {
