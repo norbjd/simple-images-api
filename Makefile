@@ -1,6 +1,8 @@
 run:
 	sudo docker-compose up --build
 
+run-tests: test-setup test test-teardown
+
 test-setup:
 	sudo docker rm -f 'minio-test'
 	sudo docker run -d --name 'minio-test' -p 9001:9000 \
@@ -16,7 +18,6 @@ test-teardown:
 test:
 	go test -cover
 
-run-tests: test-setup test test-teardown
-
-openapi-ui:
-	sudo docker run --rm -it -p 8081:8080 -e SWAGGER_JSON=/openapi.yaml -v `pwd`/api/openapi.yaml:/openapi.yaml swaggerapi/swagger-ui:v3.49.0
+openapi-ui-open:
+	# disable-web-security is used to avoid CORS errors
+	chromium --incognito --disable-web-security --user-data-dir=`mktemp -d` http://localhost:8081
