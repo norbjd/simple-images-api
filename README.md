@@ -1,5 +1,7 @@
 # simple-images-api
 
+[![Build Status](https://travis-ci.com/norbjd/simple-images-api.svg?branch=master)](https://travis-ci.com/norbjd/simple-images-api)
+
 A simple API to store and retrieve images, with Minio as a backend.
 
 # Run locally
