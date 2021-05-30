@@ -51,11 +51,11 @@ func TestAddImageAndReturnID(t *testing.T) {
 	buf.ReadFrom(imageReader)
 	assert.Equal(t, imageContent, buf.Bytes())
 
-	imageMetadataReader, err := minioClient.GetObject(bucketName, imageID + "_metadata.json", minio.GetObjectOptions{})
+	imageMetadataReader, err := minioClient.GetObject(bucketName, "metadata/"+imageID + ".json", minio.GetObjectOptions{})
 	assert.NoError(t, err)
 
 	buf = new(bytes.Buffer)
 	buf.ReadFrom(imageMetadataReader)
-	imageMetadata, _ := json.Marshal(image.Metadata)
+	imageMetadata, _ := json.Marshal(ImageIDWithMetadata{ID: imageID, Metadata: image.Metadata})
 	assert.Equal(t, imageMetadata, buf.Bytes())
 }

@@ -42,11 +42,11 @@ func (r MinioRepository) AddImageAndReturnID(image Image) (string, error) {
 
 	log.Debug("Image " + imageID + " successfully uploaded : " + fmt.Sprintf("%d", uploadInfo) + " bytes")
 
-	metadataJSON, _ := json.Marshal(image.Metadata)
-	metadataReader := bytes.NewReader(metadataJSON)
+	imageIDWithMetadataJSON, _ := json.Marshal(ImageIDWithMetadata{ID: imageID, Metadata: image.Metadata})
+	metadataReader := bytes.NewReader(imageIDWithMetadataJSON)
 	_, err = r.client.PutObject(
-		r.bucketName, imageID+"_metadata.json",
-		metadataReader, int64(len(metadataJSON)),
+		r.bucketName, "metadata/"+imageID+".json",
+		metadataReader, int64(len(imageIDWithMetadataJSON)),
 		minio.PutObjectOptions{ContentType: "application/json"},
 	)
 	if err != nil {

@@ -19,6 +19,6 @@ func (i Image) getBinaryContent() []byte {
 }
 
 type ImageIDWithMetadata struct {
-	ID       string
-	Metadata ImageMetadata
+	ID       string        `json:"id"`
+	Metadata ImageMetadata `json:"metadata"`
 }
