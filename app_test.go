@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
+	"encoding/json"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -64,6 +68,41 @@ func (r InMemoryRepository) DeleteImageByID(imageID string) error {
 
 	delete(r.images, imageID)
 	return nil
+}
+
+func TestAppAddImage(t *testing.T) {
+	app := App{repository: InMemoryRepository{images: make(map[string]Image)}}
+	router := app.initRouter()
+
+	imageBytes, _ := base64.StdEncoding.DecodeString("iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAACu0lEQVR42u2cXXaEIAyFgeMiZYW6S/owL+2oGDAJF3vzOJ0ewkf+xYmllECRSSICwiIswiIswiIsIiAswiIswiIswiICwjKRZRZF9xiPH66+86UIMs86ZSEUN2QQsJ6Q8iS4vA/TOy3LmdRaynHFJgMcY1kxxm3Cs1mGaLmFKWWZyNHyBevsdQALOKYs/nDWCh4hx+UpLKuDVL52okqyjn8X6qMTY0M9kBBI9Um5E8laWwh7jFGmdhpLar3emHoVXjmVTab84kMqjygavlivB889bqF+PIuzTeVqGLJu7spZEY9bwft43JPWonKWCYGUc4dYOZh68FJopCWGnTFINbWoR6b/eqzcen7msDKqWXV4TLImFeYk5Z0NfUh9lU6ty30Ck3C+lkxJSbb6W8A9MVlgyki1gmKk50NWpGxIWDXZfH3wdiyDng037WBBN6Qbzim726R0nbxAl0+4dGJWnvO5aesgUC3A52nDNmMWYb146jC7HBMXYZ3H39OwSzeUkgpaN/9aJ3DH0ZV6ApWrJFcGxbJGTf6a1gVyQy1eD4euKA9ZrffZSrx1rQRoI93/bu3LYyyrIwOom+Tp94vDLZpuXpUdfv6kglUr1ZqUDk0q9u1WbkenavQprPaGxcPSySLcXNaWF2vdKmwYs5r2r16UqpPCKh20eNk95tF80elJ5FJxye5sIFQScepwmyh1M4n8OJVfodMyLrcA2qRb8lF07A0ZrdWThQfNMleAuyY51sQUSZnAUu/7QEhZWRYCL3VSwfqF8lsoFqvXF32yYnS+IGs+GDAjFXx+qsChSfQZ1Pj9rkNrnJIopl7lo8Dqi+vyaZSHj/v3Ip6llnIzN7Bxs6am/+AWucsFYYQFS4WaR1rHfGcSDRMuLFjhlSPCIizCIizCohAWYREWYREWYVEIi7AIi7AI66XyA2Yom/1j6CTHAAAAAElFTkSuQmCC")
+
+	buf := new(bytes.Buffer)
+	w := multipart.NewWriter(buf)
+
+	name, _ := w.CreateFormField("name")
+	name.Write([]byte("Toto"))
+
+	fw, _ := w.CreateFormFile("image", "image")
+	fd := bytes.NewReader(imageBytes)
+	
+	io.Copy(fw, fd)
+	w.Close()
+
+	req, _ := http.NewRequest("POST", "/images", buf)
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, req)
+
+	assert.Equal(t, 200, recorder.Code)
+
+	var imageIDWithMetadata ImageIDWithMetadata
+	json.Unmarshal(recorder.Body.Bytes(), &imageIDWithMetadata)
+
+	assert.True(t, isValidUUID(imageIDWithMetadata.ID))
+	assert.Equal(t, "Toto", imageIDWithMetadata.Metadata.Name)
+	assert.Equal(t, "", imageIDWithMetadata.Metadata.Description)
 }
 
 func TestAppGetImages(t *testing.T) {
