@@ -23,7 +23,7 @@ func getMinioRepository() MinioRepository {
 
 	bucketExists, err := minioClient.BucketExists(minioBucketName)
 	if err != nil {
-		log.Fatal("Error while checking if " + minioBucketName + " bucket exists : ", err)
+		log.Fatal("Error while checking if "+minioBucketName+" bucket exists : ", err)
 	}
 	if !bucketExists {
 		log.Fatal("Bucket \"" + minioBucketName + "\" does not exist : create it before running app")
