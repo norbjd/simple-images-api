@@ -57,7 +57,35 @@ func (r MinioRepository) AddImageAndReturnID(image Image) (string, error) {
 }
 
 func (r MinioRepository) GetImages() ([]ImageIDWithMetadata, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	images := make([]ImageIDWithMetadata, 0)
+
+	doneCh := make(chan struct{})
+	defer close(doneCh)
+
+	for object := range r.client.ListObjects(r.bucketName, "metadata/", false, doneCh) {
+		if object.Err != nil {
+			log.Error("Error while iterating on objects ", object.Err.Error())
+			return nil, fmt.Errorf("cannot iterate on objects")
+		}
+
+		objectName := object.Key
+
+		metadataReader, err := r.client.GetObject(r.bucketName, objectName, minio.GetObjectOptions{})
+		if err != nil {
+			log.Error("Error while reading object ", objectName)
+			return nil, fmt.Errorf("error while reading object " + objectName)
+		}
+
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(metadataReader)
+
+		var imageIDWithMetadata ImageIDWithMetadata
+		json.Unmarshal(buf.Bytes(), &imageIDWithMetadata)
+
+		images = append(images, imageIDWithMetadata)
+	}
+
+	return images, nil
 }
 
 func (r MinioRepository) GetImageByID(imageID string) (*ImageContent, error) {
@@ -69,5 +97,14 @@ func (r MinioRepository) GetImageMetadataByID(imageID string) (*ImageIDWithMetad
 }
 
 func (r MinioRepository) DeleteImageByID(imageID string) error {
-	return fmt.Errorf("not implemented yet")
+	if r.client.RemoveObject(r.bucketName, imageID) != nil {
+		return fmt.Errorf("cannot remove image %s", imageID)
+	}
+
+	metadataObjectName := "metadata/"+imageID+".json"
+	if r.client.RemoveObject(r.bucketName, metadataObjectName) != nil {
+		return fmt.Errorf("cannot remove image metadata %s", metadataObjectName)
+	}
+	
+	return nil
 }
