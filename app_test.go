@@ -180,3 +180,40 @@ func TestAppDeleteImage_non_existent_id(t *testing.T) {
 	assert.Equal(t, 404, recorder.Code)
 	assert.Equal(t, "Image does not exist", recorder.Body.String())
 }
+
+func TestAppGetImageMetadata(t *testing.T) {
+	app := App{repository: InMemoryRepository{images: map[string]Image{
+		"id1": {Content: ImageContent{}, Metadata: ImageMetadata{Name: "image 1", Description: "An image"}},
+	}}}
+	router := app.initRouter()
+
+	req, _ := http.NewRequest("GET", "/images/id1/metadata", nil)
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, req)
+
+	assert.Equal(t, 200, recorder.Code)
+
+	expectedJSON := `{
+		"id": "id1",
+		"metadata": {
+			"name": "image 1",
+			"description": "An image"
+		}
+	}`
+
+	assert.JSONEq(t, expectedJSON, recorder.Body.String())
+}
+
+func TestAppGetImageMetadata_non_existent_id(t *testing.T) {
+	app := App{repository: InMemoryRepository{images: map[string]Image{}}}
+	router := app.initRouter()
+
+	req, _ := http.NewRequest("GET", "/images/id1/metadata", nil)
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, req)
+
+	assert.Equal(t, 404, recorder.Code)
+	assert.Equal(t, "Image does not exist", recorder.Body.String())
+}
