@@ -4,7 +4,7 @@ info:
   description: Simple images manager
   version: 1.0.0
 servers:
-- url: https://localhost:8080
+- url: http://localhost:8080
 tags:
 - name: images
   description: Manage images
@@ -23,7 +23,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UploadImageResponse'
+                $ref: '#/components/schemas/ImageIDWithMetadata'
         400:
           description: Invalid image
           content: {}
@@ -38,7 +38,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetImagesResponse'
+                $ref: '#/components/schemas/ImagesIDWithMetadata'
   /images/{imageId}:
     parameters:
     - in: path
@@ -91,7 +91,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetImageMetadataResponse'
+                $ref: '#/components/schemas/ImageIDWithMetadata'
         404:
           description: Image does not exist
 components:
@@ -113,31 +113,22 @@ components:
               description:
                 type: string
   schemas:
-    UploadImageResponse:
+    ImageIDWithMetadata:
       type: object
       properties:
         id:
           type: string
           description: Image ID
-    GetImagesResponse:
+        metadata:
+          type: object
+          properties:
+            name:
+              type: string
+              description: Image name
+            description:
+              type: string
+              description: Image description
+    ImagesIDWithMetadata:
       type: array
       items:
-        properties:
-          id:
-            type: string
-            description: Image ID
-          name:
-            type: string
-            description: Image name
-          description:
-            type: string
-            description: Image description
-    GetImageMetadataResponse:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Image name
-        description:
-          type: string
-          description: Image description
+        $ref: '#/components/schemas/ImageIDWithMetadata'
