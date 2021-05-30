@@ -1,5 +1,5 @@
 run:
-	sudo docker-compose up
+	sudo docker-compose up --build
 
 test-setup:
 	sudo docker rm -f 'minio-test'
