@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type Repository interface {
 	AddImageAndReturnID(image Image) (string, error)
 	GetImages() ([]ImageIDWithMetadata, error)
@@ -7,3 +9,5 @@ type Repository interface {
 	GetImageMetadataByID(imageID string) (*ImageIDWithMetadata, error)
 	DeleteImageByID(imageID string) error
 }
+
+var ErrImageDoesNotExist = fmt.Errorf("Image does not exist")
