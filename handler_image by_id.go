@@ -35,5 +35,19 @@ func (a App) handlerGetImage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a App) handlerDeleteImage(w http.ResponseWriter, r *http.Request) {
-	a.handlerNotImplemented(w, r)
+	imageID := mux.Vars(r)["imageID"]
+
+	err := a.repository.DeleteImageByID(imageID)
+	if err != nil {
+		if err == ErrImageDoesNotExist {
+			w.WriteHeader(404)
+			w.Write([]byte("Image does not exist"))
+			return
+		}
+		w.WriteHeader(500)
+		w.Write([]byte("Internal server error"))
+		return
+	}
+
+	w.Write([]byte("Image deleted"))
 }
