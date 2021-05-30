@@ -1,13 +1,16 @@
 DOCKER_CMD=sudo docker # remove sudo if you are in docker group
 DOCKER_COMPOSE_CMD=sudo docker-compose # remove sudo if you are in docker group
 
+build:
+	$(DOCKER_CMD) build -t "norbjd/simple-images-api:`git rev-parse --short HEAD`" .
+
 run:
 	$(DOCKER_COMPOSE_CMD) up --build
 
 run-tests: test-setup test test-teardown
 
 test-setup:
-	$(DOCKER_CMD) rm -f 'minio-test'
+	-$(DOCKER_CMD) rm -f 'minio-test'
 	$(DOCKER_CMD) run -d --name 'minio-test' -p 9001:9000 \
 		-e MINIO_ACCESS_KEY=accessKey -e MINIO_SECRET_KEY=secretKey \
 		--entrypoint /bin/sh \

@@ -1,0 +1,15 @@
+language: go
+
+go:
+- 1.16
+
+services:
+- docker
+
+branches:
+  only:
+  - master
+
+before_install:
+- make run-tests
+- make build
