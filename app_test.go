@@ -84,7 +84,7 @@ func TestAppAddImage(t *testing.T) {
 
 	fw, _ := w.CreateFormFile("image", "image")
 	fd := bytes.NewReader(imageBytes)
-	
+
 	io.Copy(fw, fd)
 	w.Close()
 
@@ -119,24 +119,27 @@ func TestAppGetImages(t *testing.T) {
 
 	assert.Equal(t, 200, recorder.Code)
 
-	expectedJSON := `[
+	var imagesIDWithMetadata []ImageIDWithMetadata
+	json.Unmarshal(recorder.Body.Bytes(), &imagesIDWithMetadata)
+
+	expected := []ImageIDWithMetadata{
 		{
-			"id": "id1",
-			"metadata": {
-				"name": "image 1",
-				"description": "An image"
-			}
+			ID: "id1",
+			Metadata: ImageMetadata{
+				Name:        "image 1",
+				Description: "An image",
+			},
 		},
 		{
-			"id": "id2",
-			"metadata": {
-				"name": "image 2",
-				"description": "Another image"
-			}
-		}
-	]`
+			ID: "id2",
+			Metadata: ImageMetadata{
+				Name:        "image 2",
+				Description: "Another image",
+			},
+		},
+	}
 
-	assert.JSONEq(t, expectedJSON, recorder.Body.String())
+	assert.ElementsMatch(t, expected, imagesIDWithMetadata)
 }
 
 func TestAppGetImages_no_images(t *testing.T) {
