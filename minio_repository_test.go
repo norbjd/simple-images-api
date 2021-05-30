@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v6"
@@ -123,6 +124,12 @@ func TestGetImageByID(t *testing.T) {
 	minioRepository.DeleteImageByID(imageID)
 }
 
+func TestGetImageByID_no_image(t *testing.T) {
+	_, err := minioRepository.GetImageByID("image-id-that-does-not-exist")
+	assert.Error(t, err)
+	assert.Equal(t, fmt.Errorf("image image-id-that-does-not-exist does not exist"), err)
+}
+
 func TestGetImageMetadataByID(t *testing.T) {
 	image := generateImage1()
 
@@ -141,6 +148,12 @@ func TestGetImageMetadataByID(t *testing.T) {
 	assert.Equal(t, expected, imageMetadata)
 
 	minioRepository.DeleteImageByID(imageID)
+}
+
+func TestGetImageMetadataByID_no_image(t *testing.T) {
+	_, err := minioRepository.GetImageMetadataByID("image-id-that-does-not-exist")
+	assert.Error(t, err)
+	assert.Equal(t, fmt.Errorf("metadata of image image-id-that-does-not-exist does not exist"), err)
 }
 
 func TestDeleteImageByID(t *testing.T) {

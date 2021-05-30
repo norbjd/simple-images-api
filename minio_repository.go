@@ -93,6 +93,11 @@ func (r MinioRepository) GetImages() ([]ImageIDWithMetadata, error) {
 }
 
 func (r MinioRepository) GetImageByID(imageID string) (*ImageContent, error) {
+	_, err := r.client.StatObject(r.bucketName, imageID, minio.StatObjectOptions{})
+	if minio.ToErrorResponse(err).Code == "NoSuchKey" {
+		return nil, fmt.Errorf("image "+imageID+" does not exist")
+	}
+
 	imageReader, err := r.client.GetObject(r.bucketName, imageID, minio.GetObjectOptions{})
 	if err != nil {
 		log.Error("Error while reading image ", imageID)
@@ -106,6 +111,11 @@ func (r MinioRepository) GetImageByID(imageID string) (*ImageContent, error) {
 }
 
 func (r MinioRepository) GetImageMetadataByID(imageID string) (*ImageIDWithMetadata, error) {
+	_, err := r.client.StatObject(r.bucketName, r.getMetadataObjectKey(imageID), minio.StatObjectOptions{})
+	if minio.ToErrorResponse(err).Code == "NoSuchKey" {
+		return nil, fmt.Errorf("metadata of image "+imageID+" does not exist")
+	}
+
 	metadataReader, err := r.client.GetObject(r.bucketName, r.getMetadataObjectKey(imageID), minio.GetObjectOptions{})
 	if err != nil {
 		log.Error("Error while reading metadata of image ", imageID)
