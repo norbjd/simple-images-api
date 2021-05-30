@@ -20,6 +20,10 @@ func NewMinioClient(endpoint, accessKey, secretKey string) (*minio.Client, error
 	return minio.New(endpoint, accessKey, secretKey, false)
 }
 
+func (r MinioRepository) getMetadataObjectKey(imageID string) string {
+	return "metadata/"+imageID+".json"
+}
+
 func (r MinioRepository) AddImageAndReturnID(image Image) (string, error) {
 	imageUUID, err := uuid.NewUUID()
 	if err != nil {
@@ -45,7 +49,7 @@ func (r MinioRepository) AddImageAndReturnID(image Image) (string, error) {
 	imageIDWithMetadataJSON, _ := json.Marshal(ImageIDWithMetadata{ID: imageID, Metadata: image.Metadata})
 	metadataReader := bytes.NewReader(imageIDWithMetadataJSON)
 	_, err = r.client.PutObject(
-		r.bucketName, "metadata/"+imageID+".json",
+		r.bucketName, r.getMetadataObjectKey(imageID),
 		metadataReader, int64(len(imageIDWithMetadataJSON)),
 		minio.PutObjectOptions{ContentType: "application/json"},
 	)
@@ -89,11 +93,32 @@ func (r MinioRepository) GetImages() ([]ImageIDWithMetadata, error) {
 }
 
 func (r MinioRepository) GetImageByID(imageID string) (*ImageContent, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	imageReader, err := r.client.GetObject(r.bucketName, imageID, minio.GetObjectOptions{})
+	if err != nil {
+		log.Error("Error while reading image ", imageID)
+		return nil, fmt.Errorf("error while reading object " + imageID)
+	}
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(imageReader)
+
+	return &ImageContent{Content: buf.Bytes()}, nil
 }
 
 func (r MinioRepository) GetImageMetadataByID(imageID string) (*ImageIDWithMetadata, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	metadataReader, err := r.client.GetObject(r.bucketName, r.getMetadataObjectKey(imageID), minio.GetObjectOptions{})
+	if err != nil {
+		log.Error("Error while reading metadata of image ", imageID)
+		return nil, fmt.Errorf("error while reading metadata of image " + imageID)
+	}
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(metadataReader)
+
+	var imageIDWithMetadata ImageIDWithMetadata
+	json.Unmarshal(buf.Bytes(), &imageIDWithMetadata)
+
+	return &imageIDWithMetadata, nil
 }
 
 func (r MinioRepository) DeleteImageByID(imageID string) error {
@@ -101,10 +126,10 @@ func (r MinioRepository) DeleteImageByID(imageID string) error {
 		return fmt.Errorf("cannot remove image %s", imageID)
 	}
 
-	metadataObjectName := "metadata/"+imageID+".json"
+	metadataObjectName := r.getMetadataObjectKey(imageID)
 	if r.client.RemoveObject(r.bucketName, metadataObjectName) != nil {
 		return fmt.Errorf("cannot remove image metadata %s", metadataObjectName)
 	}
-	
+
 	return nil
 }

@@ -111,6 +111,38 @@ func TestGetImages(t *testing.T) {
 	minioRepository.DeleteImageByID(imageID2)
 }
 
+func TestGetImageByID(t *testing.T) {
+	image := generateImage1()
+
+	imageID, _ := minioRepository.AddImageAndReturnID(image)
+
+	imageContent, err := minioRepository.GetImageByID(imageID)
+	assert.NoError(t, err)
+	assert.Equal(t, image.getBinaryContent(), imageContent.Content)
+
+	minioRepository.DeleteImageByID(imageID)
+}
+
+func TestGetImageMetadataByID(t *testing.T) {
+	image := generateImage1()
+
+	imageID, _ := minioRepository.AddImageAndReturnID(image)
+
+	imageMetadata, err := minioRepository.GetImageMetadataByID(imageID)
+	assert.NoError(t, err)
+
+	expected := &ImageIDWithMetadata{
+		ID: imageID,
+		Metadata: ImageMetadata{
+			Name:        image.Metadata.Name,
+			Description: image.Metadata.Description,
+		},
+	}
+	assert.Equal(t, expected, imageMetadata)
+
+	minioRepository.DeleteImageByID(imageID)
+}
+
 func TestDeleteImageByID(t *testing.T) {
 	imageID, _ := minioRepository.AddImageAndReturnID(generateImage1())
 
