@@ -38,8 +38,3 @@ func (a App) handlerWithLogging(handler func(w http.ResponseWriter, r *http.Requ
 		http.HandlerFunc(handler),
 	)
 }
-
-func (a App) handlerNotImplemented(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(501)
-	w.Write([]byte("Not implemented"))
-}
