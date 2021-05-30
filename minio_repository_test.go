@@ -166,3 +166,9 @@ func TestDeleteImageByID(t *testing.T) {
 	images, _ := minioRepository.GetImages()
 	assert.Len(t, images, 0)
 }
+
+func TestDeleteImageByID_no_image(t *testing.T) {
+	err := minioRepository.DeleteImageByID("image-id-that-does-not-exist")
+	assert.Error(t, err)
+	assert.Equal(t, fmt.Errorf("image image-id-that-does-not-exist does not exist"), err)
+}

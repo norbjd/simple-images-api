@@ -21,7 +21,7 @@ func NewMinioClient(endpoint, accessKey, secretKey string) (*minio.Client, error
 }
 
 func (r MinioRepository) getMetadataObjectKey(imageID string) string {
-	return "metadata/"+imageID+".json"
+	return "metadata/" + imageID + ".json"
 }
 
 func (r MinioRepository) AddImageAndReturnID(image Image) (string, error) {
@@ -95,7 +95,7 @@ func (r MinioRepository) GetImages() ([]ImageIDWithMetadata, error) {
 func (r MinioRepository) GetImageByID(imageID string) (*ImageContent, error) {
 	_, err := r.client.StatObject(r.bucketName, imageID, minio.StatObjectOptions{})
 	if minio.ToErrorResponse(err).Code == "NoSuchKey" {
-		return nil, fmt.Errorf("image "+imageID+" does not exist")
+		return nil, fmt.Errorf("image " + imageID + " does not exist")
 	}
 
 	imageReader, err := r.client.GetObject(r.bucketName, imageID, minio.GetObjectOptions{})
@@ -113,7 +113,7 @@ func (r MinioRepository) GetImageByID(imageID string) (*ImageContent, error) {
 func (r MinioRepository) GetImageMetadataByID(imageID string) (*ImageIDWithMetadata, error) {
 	_, err := r.client.StatObject(r.bucketName, r.getMetadataObjectKey(imageID), minio.StatObjectOptions{})
 	if minio.ToErrorResponse(err).Code == "NoSuchKey" {
-		return nil, fmt.Errorf("metadata of image "+imageID+" does not exist")
+		return nil, fmt.Errorf("metadata of image " + imageID + " does not exist")
 	}
 
 	metadataReader, err := r.client.GetObject(r.bucketName, r.getMetadataObjectKey(imageID), minio.GetObjectOptions{})
@@ -132,6 +132,11 @@ func (r MinioRepository) GetImageMetadataByID(imageID string) (*ImageIDWithMetad
 }
 
 func (r MinioRepository) DeleteImageByID(imageID string) error {
+	_, err := r.client.StatObject(r.bucketName, imageID, minio.StatObjectOptions{})
+	if minio.ToErrorResponse(err).Code == "NoSuchKey" {
+		return fmt.Errorf("image " + imageID + " does not exist")
+	}
+
 	if r.client.RemoveObject(r.bucketName, imageID) != nil {
 		return fmt.Errorf("cannot remove image %s", imageID)
 	}
