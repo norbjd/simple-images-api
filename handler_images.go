@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 )
 
@@ -18,5 +19,13 @@ func (a App) handlerAddImage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a App) handlerGetImages(w http.ResponseWriter, r *http.Request) {
-	a.handlerNotImplemented(w, r)
+	images, err := a.repository.GetImages()
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte("Internal server error"))
+	}
+
+	resultJSON, _ := json.Marshal(images)
+
+	w.Write(resultJSON)
 }

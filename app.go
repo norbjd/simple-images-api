@@ -13,6 +13,13 @@ type App struct {
 }
 
 func (a App) run() {
+	router := a.initRouter()
+
+	log.Info("Server started")
+	log.Fatal(http.ListenAndServe(":8080", router))
+}
+
+func (a App) initRouter() *mux.Router {
 	router := mux.NewRouter()
 
 	router.Handle("/images", a.handlerWithLogging(a.handlerImages)).Methods("GET", "POST")
@@ -22,8 +29,7 @@ func (a App) run() {
 		http.NotFound(w, r)
 	}))
 
-	log.Info("Server started")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	return router
 }
 
 func (a App) handlerWithLogging(handler func(w http.ResponseWriter, r *http.Request)) http.Handler {
