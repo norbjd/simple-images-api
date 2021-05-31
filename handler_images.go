@@ -66,6 +66,7 @@ func (a App) handlerAddImage(w http.ResponseWriter, r *http.Request) {
 
 	resultJSON, _ := json.Marshal(result)
 
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(resultJSON)
 }
 
@@ -78,5 +79,6 @@ func (a App) handlerGetImages(w http.ResponseWriter, r *http.Request) {
 
 	resultJSON, _ := json.Marshal(images)
 
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(resultJSON)
 }

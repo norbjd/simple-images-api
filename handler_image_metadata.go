@@ -24,5 +24,6 @@ func (a App) handlerImageMetadata(w http.ResponseWriter, r *http.Request) {
 
 	resultJSON, _ := json.Marshal(imageIDWithMetadata)
 
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(resultJSON)
 }
