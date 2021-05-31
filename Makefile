@@ -6,7 +6,8 @@ build:
 
 push:
 	@echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin
-	$(DOCKER_CMD) docker push "norbjd/simple-images-api:`git rev-parse --short HEAD`"
+	$(DOCKER_CMD) push "norbjd/simple-images-api:`git rev-parse --short HEAD`"
+	$(DOCKER_CMD) logout
 
 run:
 	$(DOCKER_COMPOSE_CMD) up --build
