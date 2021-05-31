@@ -26,4 +26,4 @@ make openapi-ui-open
 
 starts a browser pointing to the OpenAPI UI. It requires `chromium`. From there, you can test the API.
 
-Or you can do `curl` requests to `localhost:8000`.
+Or you can do `curl` requests to `localhost:8080`.
