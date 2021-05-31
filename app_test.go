@@ -161,8 +161,8 @@ func TestAppAddImage_not_an_image(t *testing.T) {
 
 	router.ServeHTTP(recorder, insertFileNotAnImageRequest(bytes, "Toto", ""))
 
-	assert.Equal(t, 40, recorder.Code)
-	assert.Equal(t, `Uploaded file should be an image (MimeType should starts with "image"`, recorder.Body.String())
+	assert.Equal(t, 400, recorder.Code)
+	assert.Equal(t, `Uploaded file should be an image (MimeType should starts with "image")`, recorder.Body.String())
 }
 
 func TestAppGetImages(t *testing.T) {
