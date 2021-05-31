@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/textproto"
 	"testing"
 
 	"github.com/google/uuid"
@@ -70,7 +71,7 @@ func (r InMemoryRepository) DeleteImageByID(imageID string) error {
 	return nil
 }
 
-func insertImageRequest(content []byte, name string, description string) *http.Request {
+func insertImagePNGRequest(content []byte, name string, description string) *http.Request {
 	buf := new(bytes.Buffer)
 	w := multipart.NewWriter(buf)
 
@@ -84,14 +85,48 @@ func insertImageRequest(content []byte, name string, description string) *http.R
 		descriptionField.Write([]byte(description))
 	}
 
-	fw, _ := w.CreateFormFile("image", "image")
+	h := make(textproto.MIMEHeader)
+	h.Set("Content-Disposition", `form-data; name="image"; filename="image.png"`)
+	h.Set("Content-Type", "image/png")
+	image, _ := w.CreatePart(h)
 	fd := bytes.NewReader(content)
+	io.Copy(image, fd)
 
-	io.Copy(fw, fd)
 	w.Close()
 
 	req, _ := http.NewRequest("POST", "/images", buf)
 	req.Header.Set("Content-Type", w.FormDataContentType())
+	req.FormFile("image")
+
+	return req
+}
+
+func insertFileNotAnImageRequest(content []byte, name string, description string) *http.Request {
+	buf := new(bytes.Buffer)
+	w := multipart.NewWriter(buf)
+
+	if name != "" {
+		nameField, _ := w.CreateFormField("name")
+		nameField.Write([]byte(name))
+	}
+
+	if description != "" {
+		descriptionField, _ := w.CreateFormField("description")
+		descriptionField.Write([]byte(description))
+	}
+
+	h := make(textproto.MIMEHeader)
+	h.Set("Content-Disposition", `form-data; name="image"; filename="hello.txt"`)
+	h.Set("Content-Type", "application/octet-stream")
+	image, _ := w.CreatePart(h)
+	fd := bytes.NewReader(content)
+	io.Copy(image, fd)
+
+	w.Close()
+
+	req, _ := http.NewRequest("POST", "/images", buf)
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	req.FormFile("image")
 
 	return req
 }
@@ -104,7 +139,7 @@ func TestAppAddImage(t *testing.T) {
 
 	recorder := httptest.NewRecorder()
 
-	router.ServeHTTP(recorder, insertImageRequest(imageBytes, "Toto", ""))
+	router.ServeHTTP(recorder, insertImagePNGRequest(imageBytes, "Toto", ""))
 
 	assert.Equal(t, 200, recorder.Code)
 
@@ -114,6 +149,20 @@ func TestAppAddImage(t *testing.T) {
 	assert.True(t, isValidUUID(imageIDWithMetadata.ID))
 	assert.Equal(t, "Toto", imageIDWithMetadata.Metadata.Name)
 	assert.Equal(t, "", imageIDWithMetadata.Metadata.Description)
+}
+
+func TestAppAddImage_not_an_image(t *testing.T) {
+	app := App{repository: InMemoryRepository{images: make(map[string]Image)}}
+	router := app.initRouter()
+
+	bytes, _ := base64.StdEncoding.DecodeString("aGVsbG8K")
+
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, insertFileNotAnImageRequest(bytes, "Toto", ""))
+
+	assert.Equal(t, 40, recorder.Code)
+	assert.Equal(t, `Uploaded file should be an image (MimeType should starts with "image"`, recorder.Body.String())
 }
 
 func TestAppGetImages(t *testing.T) {
