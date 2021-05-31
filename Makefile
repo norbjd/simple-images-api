@@ -4,6 +4,10 @@ DOCKER_COMPOSE_CMD=sudo docker-compose # remove sudo if you are in docker group
 build:
 	$(DOCKER_CMD) build -t "norbjd/simple-images-api:`git rev-parse --short HEAD`" .
 
+push:
+	@echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin
+	$(DOCKER_CMD) docker push "norbjd/simple-images-api:`git rev-parse --short HEAD`"
+
 run:
 	$(DOCKER_COMPOSE_CMD) up --build
 

@@ -13,3 +13,7 @@ branches:
 before_install:
 - make run-tests
 - make build
+
+deploy:
+  provider: script
+  script: make push
