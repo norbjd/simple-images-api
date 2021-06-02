@@ -1,5 +1,5 @@
-DOCKER_CMD=sudo docker # remove sudo if you are in docker group
-DOCKER_COMPOSE_CMD=sudo docker-compose # remove sudo if you are in docker group
+DOCKER_CMD=docker # add sudo if you are not in docker group
+DOCKER_COMPOSE_CMD=docker-compose # add sudo if you are not in docker group
 
 build:
 	$(DOCKER_CMD) build -t "norbjd/simple-images-api:`git rev-parse --short HEAD`" .
